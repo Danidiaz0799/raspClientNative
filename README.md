@@ -1,25 +1,58 @@
 # RaspClientNative
 
-RaspClientNative es una aplicación desarrollada para ejecutarse en una Raspberry Pi y controlar y monitorear dispositivos IoT (Internet of Things) a través de comunicación MQTT. El cliente se conecta a una red Wi-Fi, se comunica con un servidor MQTT (broker) y permite el control de actuadores y la lectura de sensores ambientales, mostrando información relevante en una pantalla OLED.
+Cliente IoT para Raspberry Pi, especializado en monitoreo y control ambiental en tiempo real. Se integra de forma nativa con el servidor [RaspServer](https://github.com/Danidiaz0799/raspServer) usando MQTT.
 
-## Tabla de Contenidos
-- [¿Para qué sirve?](#para-que-sirve)
-- [¿Cómo funciona?](#como-funciona)
-- [Arquitectura y Estructura del Proyecto](#arquitectura-y-estructura-del-proyecto)
-- [Conexión al Servidor](#conexion-al-servidor)
-- [Instalación y Ejecución](#instalacion-y-ejecucion)
-- [Dependencias](#dependencias)
-- [Autores](#autores)
+[Repositorio en GitHub](https://github.com/Danidiaz0799/raspClientNative)
 
 ---
 
-## ¿Para qué sirve?
+## Características principales
 
-RaspClientNative está diseñado para integrarse en sistemas de automatización y monitoreo ambiental, permitiendo:
-- Controlar actuadores (ventilador, luz, humidificador, motor) de forma remota mediante mensajes MQTT.
-- Medir temperatura y humedad ambiental usando sensores (ej. SHT3x, BMP280, etc.).
-- Publicar periódicamente los datos de los sensores al servidor MQTT.
-- Mostrar información y mensajes en una pantalla OLED conectada a la Raspberry Pi.
+- Control remoto de actuadores: ventilador, luz, humidificador y motor (GPIO).
+- Lectura periódica de sensores I2C (ejemplo: SHT3x).
+- Publicación automática de datos ambientales vía MQTT.
+- Visualización local en pantalla OLED.
+- Reconexión automática de Wi-Fi y MQTT.
+
+---
+
+## Arquitectura y flujo de integración
+
+| Componente          | Función principal                                           |
+|---------------------|------------------------------------------------------------|
+| Sensores I2C        | Lectura de temperatura, humedad, etc.                      |
+| Actuadores GPIO     | Control de dispositivos físicos (ventilador, luz, etc.)    |
+| Pantalla OLED       | Visualización local de datos y mensajes                    |
+| boot.py             | Orquestador: integra sensores, actuadores y comunicación   |
+| Broker MQTT         | Intermediario de mensajes entre cliente y servidor         |
+| RaspServer          | Backend central: almacena datos, envía comandos, expone API|
+| Base de datos       | Almacenamiento histórico de mediciones y eventos           |
+| API REST            | Gestión y visualización de datos (frontend externo)        |
+
+**Flujo resumido:**
+1. El cliente lee sensores y publica datos en tópicos MQTT.
+2. El servidor central (RaspServer) recibe datos, almacena y puede enviar comandos de control.
+3. Los comandos viajan por MQTT y son ejecutados por el cliente en los actuadores.
+4. Toda la comunicación es asíncrona y bidireccional vía MQTT.
+
+---
+
+## Integración con RaspServer
+- El servidor [RaspServer](https://github.com/Danidiaz0799/raspServer) centraliza los datos y gestiona la lógica de control.
+- Comunicación bidireccional: el servidor puede enviar comandos a los actuadores del cliente.
+- Los datos históricos quedan almacenados en la base de datos del servidor.
+
+---
+
+## Dependencias principales
+
+- `Adafruit-Blinka`, `adafruit-circuitpython-*`, `RPi.GPIO`, `smbus`, `spidev`: Acceso a hardware y sensores I2C/SPI.
+- `paho-mqtt`: Comunicación MQTT.
+- `pillow`: Visualización en OLED.
+
+Consulta las versiones exactas en el archivo `requirements.txt`.
+
+---
 
 ## ¿Cómo funciona?
 
@@ -64,7 +97,7 @@ raspClientNative/
 
 ### 1. Clonar el repositorio
 ```bash
-git clone <repo_url>
+git clone https://github.com/Danidiaz0799/raspClientNative
 cd raspClientNative
 ```
 
@@ -89,26 +122,3 @@ Para ejecución automática al arrancar:
 sudo systemctl enable projectClient.service
 sudo systemctl start projectClient.service
 ```
-
-## Dependencias
-Principales librerías usadas (ver `requirements.txt`):
-- paho-mqtt
-- RPi.GPIO
-- Adafruit CircuitPython (sensores, pantalla)
-- luma.core, pillow (pantalla OLED)
-- nmcli (gestión de Wi-Fi)
-
-## Autores
-- Proyecto desarrollado por [Tu Nombre o Equipo]
-
----
-
-## Notas adicionales
-- El sistema está diseñado para ejecutarse en Raspberry Pi con Raspbian.
-- Asegúrate de tener habilitado I2C y acceso a GPIO.
-- Personaliza los pines y parámetros en los scripts según tu hardware.
-
----
-
-# Licencia
-[Indica aquí la licencia de tu proyecto si aplica]
