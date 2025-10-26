@@ -36,12 +36,16 @@ def on_message(client, userdata, message):
 def mqtt_loop(client):
     while True:
         try:
-            client.loop()  # Verificar si hay nuevos mensajes
-        except OSError as e:
-            print("Error en el loop MQTT:", str(e))
-            client = connect_mqtt()  # Intentar reconectar si falla la conexion MQTT
-            setup_mqtt_client(client)  # Reconfigurar el cliente
-        time.sleep(1)  # Esperar 1 segundo antes de verificar nuevamente
+            client.loop(timeout=1.0)
+        except Exception as e:
+            print(f"Error en MQTT loop: {str(e)}")
+            try:
+                client.reconnect()
+                setup_mqtt_client(client)
+            except Exception as reconnect_error:
+                print(f"Error reconectando: {str(reconnect_error)}")
+                time.sleep(5)
+        time.sleep(0.01)
 
 # Configurar cliente MQTT con suscripciones y callbacks
 def setup_mqtt_client(client):
