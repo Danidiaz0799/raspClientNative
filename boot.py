@@ -58,7 +58,7 @@ def sensor_loop(client):
             publish_sht3x_data(client, config.TOPIC_SHT3X)
         except Exception as e:
             print(f"Error en el loop de sensores: {str(e)}")
-        time.sleep(5)
+        time.sleep(1)
 
 def main():
     # Intentar conectarse al Wi-Fi
