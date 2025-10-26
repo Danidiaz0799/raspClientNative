@@ -6,8 +6,6 @@ from actuators.fan import control_fan
 from actuators.humidifier import control_humidifier
 from actuators.motor import control_motor
 from sensors.sht3x import publish_sht3x_data
-from sensors.bmp280 import publish_bmp280_data
-from sensors.gy302 import publish_gy302_data
 from config import config
 from actuators.oled import display_message
 import time
@@ -58,8 +56,6 @@ def sensor_loop(client):
     while True:
         try:
             publish_sht3x_data(client, config.TOPIC_SHT3X)
-            publish_bmp280_data(client, config.TOPIC_BMP280)
-            publish_gy302_data(client, config.TOPIC_GY302)
         except Exception as e:
             print(f"Error en el loop de sensores: {str(e)}")
         time.sleep(5)
