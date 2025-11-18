@@ -23,4 +23,7 @@ def publish_sht3x_data(client, topic):
         humidity = round(sensor_data['humidity'], 4)
         message = '{0},{1}'.format(temperature, humidity).encode('utf-8')
         client.publish(topic, message)
+        print(f"SHT3x: T={temperature}°C H={humidity}%")
         display_data(temperature, humidity)
+    else:
+        print("Error leyendo SHT3x")

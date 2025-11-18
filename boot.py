@@ -14,8 +14,10 @@ import threading
 def register_client(client):
     registration_message = f"{config.CLIENT_ID}"
     client.publish(config.TOPIC_REGISTER, registration_message)
+    print(f"Cliente registrado: {config.CLIENT_ID}")
 
 def on_message(client, userdata, message):
+    print(f"Mensaje: {message.topic}")
     if message.topic == config.TOPIC_LIGHT:
         state = message.payload.decode('utf-8')
         control_light(state)
@@ -33,7 +35,8 @@ def mqtt_loop(client):
     while True:
         try:
             client.loop()
-        except OSError as e:
+        except Exception as e:
+            print(f"Error MQTT: {e}")
             client = connect_mqtt()
             setup_mqtt_client(client)
         time.sleep(1)
@@ -50,28 +53,34 @@ def sht3x_loop(client):
     while True:
         try:
             publish_sht3x_data(client, config.TOPIC_SHT3X)
-        except OSError as e:
-            pass
+        except Exception as e:
+            print(f"Error sensor: {e}")
         time.sleep(5)
 
 def main():
+    print("Iniciando cliente...")
     display_message("Conectando a Wi-Fi...")
     if connect_wifi():
+        print("WiFi conectado")
         display_message("Wi-Fi Conectado")
         client = connect_mqtt()
         if client:
+            print(f"MQTT conectado como {config.CLIENT_ID}")
             display_message(f"Conectado como {config.CLIENT_ID}")
             setup_mqtt_client(client)
             
             threading.Thread(target=mqtt_loop, args=(client,)).start()
             threading.Thread(target=sht3x_loop, args=(client,)).start()
             
+            print("Loops iniciados")
             while True:
                 register_client(client)
                 time.sleep(300)
         else:
+            print("Error: No se pudo conectar a MQTT")
             display_message("No se conecto a MQTT")
     else:
+        print("Error: No se pudo conectar a WiFi")
         display_message("No se conecto a Wi-Fi")
 
 if __name__ == "__main__":
