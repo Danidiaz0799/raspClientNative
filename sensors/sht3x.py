@@ -20,7 +20,4 @@ def publish_sht3x_data(client, topic):
         humidity = round(sensor_data['humidity'], 4)
         message = '{0},{1}'.format(temperature, humidity).encode('utf-8')
         client.publish(topic, message)
-        print("SHT3x:", message, "Topico:", topic)
-        display_data(temperature, humidity)  # Mostrar datos en la pantalla OLED
-    else:
-        print("Error al leer los datos del sensor SHT3x")
+        display_data(temperature, humidity)

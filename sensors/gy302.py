@@ -1,6 +1,6 @@
 import smbus
 
-# Configuración del sensor GY-302
+# Configuraciï¿½n del sensor GY-302
 I2C_PORT = 1
 GY302_ADDRESS = 0x23
 
@@ -16,6 +16,3 @@ def publish_gy302_data(client, topic):
         light_level = sensor_data['light_level']
         message = '{0}'.format(light_level).encode('utf-8')
         client.publish(topic, message)
-        print("Datos GY-302 publicados:", message, "en el topico:", topic)
-    else:
-        print("Error al leer los datos del sensor GY-302")

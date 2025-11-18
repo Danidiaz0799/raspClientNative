@@ -11,16 +11,11 @@ from actuators.oled import display_message
 import time
 import threading
 
-# Funci�n para registrar el cliente en el servidor
 def register_client(client):
-    # Enviar solo el CLIENT_ID para registro
     registration_message = f"{config.CLIENT_ID}"
     client.publish(config.TOPIC_REGISTER, registration_message)
-    print(f"Cliente registrado con ID: {config.CLIENT_ID}")
 
-# Funcion de callback para manejar mensajes MQTT
 def on_message(client, userdata, message):
-    print(f"Mensaje recibido en el topico {message.topic}: {message.payload.decode('utf-8')}")
     if message.topic == config.TOPIC_LIGHT:
         state = message.payload.decode('utf-8')
         control_light(state)
@@ -38,12 +33,11 @@ def on_message(client, userdata, message):
 def mqtt_loop(client):
     while True:
         try:
-            client.loop()  # Verificar si hay nuevos mensajes
+            client.loop()
         except OSError as e:
-            print("Error en el loop MQTT:", str(e))
-            client = connect_mqtt()  # Intentar reconectar si falla la conexion MQTT
-            setup_mqtt_client(client)  # Reconfigurar el cliente
-        time.sleep(1)  # Esperar 1 segundo antes de verificar nuevamente
+            client = connect_mqtt()
+            setup_mqtt_client(client)
+        time.sleep(1)
 
 # Configurar cliente MQTT con suscripciones y callbacks
 def setup_mqtt_client(client):
@@ -60,12 +54,11 @@ def sht3x_loop(client):
         try:
             publish_sht3x_data(client, config.TOPIC_SHT3X)
         except OSError as e:
-            print("Error en el loop de sensores SHT3x:", str(e))
+            pass
         time.sleep(5)
 
 # Funcion principal del programa
 def main():
-    # Intentar conectarse al Wi-Fi
     display_message("Conectando a Wi-Fi...")
     if connect_wifi():
         display_message("Wi-Fi Conectado")
@@ -74,20 +67,16 @@ def main():
             display_message(f"Conectado como {config.CLIENT_ID}")
             setup_mqtt_client(client)
             
-            # Iniciar hilos para manejar MQTT y sensores
             threading.Thread(target=mqtt_loop, args=(client,)).start()
             threading.Thread(target=sht3x_loop, args=(client,)).start()
             
-            # Periódicamente re-registrar el cliente para mantener el estado 'online'
             while True:
                 register_client(client)
-                time.sleep(300)  # Re-registrar cada 5 minutos (optimizado)
+                time.sleep(300)
         else:
             display_message("No se conecto a MQTT")
-            print("No se pudo conectar al broker MQTT.")
     else:
         display_message("No se conecto a Wi-Fi")
-        print("No se pudo conectar a la red Wi-Fi.")
 
 # Ejecutar el programa principal
 if __name__ == "__main__":
