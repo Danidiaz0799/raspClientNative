@@ -4,7 +4,7 @@ PASSWORD = 'hola12345'
 
 CLIENT_ID = 'mushroom1'  # Identificador �nico del cliente
 
-SERVER = '172.27.124.214'  # IP del servidor MQTT (Raspberry Pi)
+SERVER = '172.22.116.214'  # IP del servidor MQTT (Raspberry Pi)
 
 # Nuevos t�picos basados en el ID de cliente
 TOPIC_PREFIX = f'clients/{CLIENT_ID}/'
