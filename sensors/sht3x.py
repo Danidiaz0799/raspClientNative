@@ -9,9 +9,12 @@ i2c = busio.I2C(board.SCL, board.SDA)
 sensor = adafruit_sht31d.SHT31D(i2c, address=0x44)  # Especificar la direccion I2C
 
 def read_sht3x():
-    temperature = sensor.temperature
-    humidity = sensor.relative_humidity
-    return {'temperature': temperature, 'humidity': humidity}
+    try:
+        temperature = sensor.temperature
+        humidity = sensor.relative_humidity
+        return {'temperature': temperature, 'humidity': humidity}
+    except:
+        return None
 
 def publish_sht3x_data(client, topic):
     sensor_data = read_sht3x()

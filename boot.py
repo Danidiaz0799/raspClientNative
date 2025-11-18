@@ -29,7 +29,6 @@ def on_message(client, userdata, message):
         state = message.payload.decode('utf-8')
         control_motor(state)
 
-# Funcion para manejar la conexion MQTT y recibir mensajes
 def mqtt_loop(client):
     while True:
         try:
@@ -39,16 +38,14 @@ def mqtt_loop(client):
             setup_mqtt_client(client)
         time.sleep(1)
 
-# Configurar cliente MQTT con suscripciones y callbacks
 def setup_mqtt_client(client):
     client.on_message = on_message
     client.subscribe(config.TOPIC_LIGHT)
     client.subscribe(config.TOPIC_FAN)
     client.subscribe(config.TOPIC_HUMIDIFIER)
     client.subscribe(config.TOPIC_MOTOR)
-    register_client(client)  # Registrar el cliente al iniciar y reconectar
+    register_client(client)
 
-# Funcion para publicar datos del sensor SHT3x
 def sht3x_loop(client):
     while True:
         try:
@@ -57,7 +54,6 @@ def sht3x_loop(client):
             pass
         time.sleep(5)
 
-# Funcion principal del programa
 def main():
     display_message("Conectando a Wi-Fi...")
     if connect_wifi():
@@ -78,6 +74,5 @@ def main():
     else:
         display_message("No se conecto a Wi-Fi")
 
-# Ejecutar el programa principal
 if __name__ == "__main__":
     main()

@@ -7,9 +7,12 @@ i2c = busio.I2C(board.SCL, board.SDA)
 sensor = adafruit_bmp280.Adafruit_BMP280_I2C(i2c, address=0x76)
 
 def read_bmp280():
-    temperature = sensor.temperature
-    pressure = sensor.pressure
-    return {'temperature': temperature, 'pressure': pressure}
+    try:
+        temperature = sensor.temperature
+        pressure = sensor.pressure
+        return {'temperature': temperature, 'pressure': pressure}
+    except:
+        return None
 
 def publish_bmp280_data(client, topic):
     sensor_data = read_bmp280()
