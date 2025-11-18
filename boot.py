@@ -11,7 +11,7 @@ from actuators.oled import display_message
 import time
 import threading
 
-# Función para registrar el cliente en el servidor
+# Funciï¿½n para registrar el cliente en el servidor
 def register_client(client):
     # Enviar solo el CLIENT_ID para registro
     registration_message = f"{config.CLIENT_ID}"
@@ -78,10 +78,10 @@ def main():
             threading.Thread(target=mqtt_loop, args=(client,)).start()
             threading.Thread(target=sht3x_loop, args=(client,)).start()
             
-            # Periódicamente re-registrar el cliente para mantener el estado 'online'
+            # PeriÃ³dicamente re-registrar el cliente para mantener el estado 'online'
             while True:
                 register_client(client)
-                time.sleep(60)  # Re-registrar cada minuto
+                time.sleep(300)  # Re-registrar cada 5 minutos (optimizado)
         else:
             display_message("No se conecto a MQTT")
             print("No se pudo conectar al broker MQTT.")
