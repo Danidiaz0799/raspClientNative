@@ -5,10 +5,10 @@ After=network.target
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/home/pi/raspClientNative
-Environment="PATH=/home/pi/raspClientNative/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+WorkingDirectory=/home/pi/Desktop/raspClient
+Environment="PATH=/home/pi/Desktop/raspClient/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 Environment="PYTHONUNBUFFERED=1"
-ExecStart=/home/pi/raspClientNative/venv/bin/python3 boot.py
+ExecStart=/home/pi/Desktop/raspClient/venv/bin/python3 boot.py
 Restart=always
 RestartSec=5
 
