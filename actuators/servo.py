@@ -1,23 +1,23 @@
 import RPi.GPIO as GPIO
 import time
+import threading
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
 # Pin del servo (puedes cambiarlo según tu conexión física)
 # IMPORTANTE: Asegúrate de que este pin esté libre y no esté siendo usado por otro dispositivo
-# Pines PWM hardware en Raspberry Pi: GPIO 12, 13, 18, 19
-# También puedes usar cualquier otro pin GPIO para PWM software
-servo_pin = 18  # GPIO 18 (pin PWM hardware, pero funciona con PWM software también)
+servo_pin = 18  # GPIO 18
 
-# Variable global para el objeto PWM
-servo_pwm = None
+# Variable global para controlar el hilo PWM
+servo_thread = None
+servo_running = False
+servo_angle = 0
 
 def init_servo():
     """
     Inicializa el servo motor
     """
-    global servo_pwm
     try:
         # Verificar que GPIO esté configurado
         if GPIO.getmode() is None:
@@ -26,19 +26,7 @@ def init_servo():
         
         # Configurar el pin como salida
         GPIO.setup(servo_pin, GPIO.OUT)
-        
-        # Crear objeto PWM con frecuencia de 50Hz (estándar para servos SG90)
-        servo_pwm = GPIO.PWM(servo_pin, 50)
-        
-        # Iniciar PWM con duty cycle 0 (servo en posición inicial)
-        servo_pwm.start(0)
-        
-        # Pequeña pausa para estabilizar
-        time.sleep(0.2)
-        
-        # Mover a posición inicial (0 grados) para asegurar que esté en posición conocida
-        servo_pwm.ChangeDutyCycle(2.5)
-        time.sleep(0.3)
+        GPIO.output(servo_pin, GPIO.LOW)
         
         print(f"[SERVO] Inicializado correctamente en GPIO {servo_pin}")
         return True
@@ -48,43 +36,87 @@ def init_servo():
         traceback.print_exc()
         return False
 
+def pwm_servo_thread():
+    """
+    Hilo que genera la señal PWM para el servo
+    Genera pulsos de 50Hz (20ms de período)
+    """
+    global servo_running, servo_angle
+    
+    while servo_running:
+        try:
+            # Convertir ángulo a ancho de pulso en milisegundos
+            # Servo SG90: 0° = 1ms, 90° = 1.5ms, 180° = 2.5ms
+            pulse_width_ms = 1.0 + (servo_angle / 180.0) * 1.5
+            
+            # Generar pulso HIGH
+            GPIO.output(servo_pin, GPIO.HIGH)
+            time.sleep(pulse_width_ms / 1000.0)  # Convertir ms a segundos
+            
+            # Generar pulso LOW (completar el período de 20ms)
+            GPIO.output(servo_pin, GPIO.LOW)
+            time.sleep((20.0 - pulse_width_ms) / 1000.0)
+            
+        except Exception as e:
+            print(f"[SERVO] Error en hilo PWM: {e}")
+            break
+
+def start_pwm():
+    """
+    Inicia el hilo PWM para el servo
+    """
+    global servo_thread, servo_running
+    
+    if servo_thread is None or not servo_thread.is_alive():
+        servo_running = True
+        servo_thread = threading.Thread(target=pwm_servo_thread, daemon=True)
+        servo_thread.start()
+        print("[SERVO] Hilo PWM iniciado")
+
+def stop_pwm():
+    """
+    Detiene el hilo PWM
+    """
+    global servo_running, servo_thread
+    
+    servo_running = False
+    if servo_thread is not None:
+        servo_thread.join(timeout=1.0)
+        servo_thread = None
+    GPIO.output(servo_pin, GPIO.LOW)
+    print("[SERVO] Hilo PWM detenido")
+
 def control_servo(angle):
     """
     Controla el servo motor SG90
     angle: ángulo en grados (0-180)
     """
-    global servo_pwm
+    global servo_angle
     
     try:
         # Asegurar que el servo esté inicializado
-        if servo_pwm is None:
-            print("Inicializando servo...")
+        if GPIO.getmode() is None:
             if not init_servo():
-                print("Error: No se pudo inicializar el servo")
+                print("[SERVO] Error: No se pudo inicializar el servo")
                 return
         
-        # Convertir ángulo a duty cycle
-        # Servo SG90 típicamente:
-        # 0° = 2.5% duty cycle (1ms de pulso en 20ms)
-        # 90° = 7.5% duty cycle (1.5ms de pulso en 20ms)
-        # 180° = 12.5% duty cycle (2.5ms de pulso en 20ms)
-        # Fórmula: duty_cycle = 2.5 + (angle / 180) * 10
-        duty_cycle = 2.5 + (angle / 180.0) * 10.0
+        # Limitar el ángulo entre 0 y 180 grados
+        angle = max(0, min(180, angle))
+        servo_angle = angle
         
-        # Limitar el duty cycle entre 2.5% y 12.5%
-        duty_cycle = max(2.5, min(12.5, duty_cycle))
+        # Iniciar PWM si no está corriendo
+        if servo_thread is None or not servo_thread.is_alive():
+            start_pwm()
+            # Dar tiempo para que el servo se estabilice
+            time.sleep(0.3)
         
-        print(f"[SERVO] Moviendo a {angle}° (duty cycle: {duty_cycle:.2f}%)")
-        
-        # Aplicar el duty cycle
-        servo_pwm.ChangeDutyCycle(duty_cycle)
+        # Calcular ancho de pulso para debug
+        pulse_width_ms = 1.0 + (angle / 180.0) * 1.5
+        print(f"[SERVO] Moviendo a {angle}° (pulso: {pulse_width_ms:.2f}ms)")
         
         # Esperar tiempo suficiente para que el servo se mueva
         # Los servos SG90 necesitan al menos 0.5-1 segundo para moverse completamente
-        time.sleep(0.8)
-        
-        # Mantener el duty cycle activo para que el servo mantenga la posición
-        # NO poner a 0, ya que algunos servos necesitan la señal constante
+        time.sleep(0.6)
         
         print(f"[SERVO] Posición establecida en {angle}°")
         
@@ -113,14 +145,11 @@ def cleanup():
     """
     Limpia los recursos del servo
     """
-    global servo_pwm
     try:
-        if servo_pwm is not None:
-            servo_pwm.stop()
-            servo_pwm = None
+        stop_pwm()
         GPIO.cleanup(servo_pin)
     except Exception as e:
-        print(f"Error limpiando servo: {e}")
+        print(f"[SERVO] Error limpiando servo: {e}")
 
 def test_servo():
     """
@@ -152,7 +181,7 @@ def test_servo():
         import traceback
         traceback.print_exc()
 
-# Inicializar el servo al importar el módulo
+# Inicializar GPIO al importar el módulo (pero no iniciar PWM todavía)
 try:
     init_servo()
 except Exception as e:
