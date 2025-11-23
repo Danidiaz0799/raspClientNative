@@ -84,15 +84,20 @@ def control_servo(angle):
         
         angle = max(0, min(180, int(angle)))
         old_angle = servo_angle
+        
+        # Si el ángulo no cambió y el PWM está detenido, no hacer nada
+        # Esto evita movimientos innecesarios y temblores
+        if old_angle == angle and (servo_thread is None or not servo_thread.is_alive()):
+            return
+        
         servo_angle = angle
         
-        # Iniciar PWM para mover el servo
-        if servo_thread is None or not servo_thread.is_alive():
-            start_pwm()
-            time.sleep(0.2)
-        
-        # Si el ángulo cambió, dar tiempo suficiente para que se mueva
+        # Iniciar PWM solo si el ángulo cambió
         if old_angle != angle:
+            if servo_thread is None or not servo_thread.is_alive():
+                start_pwm()
+                time.sleep(0.2)
+            
             # Calcular tiempo basado en la distancia a mover
             distance = abs(angle - old_angle)
             move_time = 0.8 + (distance / 180.0) * 0.4  # Entre 0.8s y 1.2s
