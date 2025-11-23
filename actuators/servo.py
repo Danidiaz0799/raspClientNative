@@ -43,22 +43,35 @@ def pwm_servo_thread():
     """
     global servo_running, servo_angle
     
+    period_ms = 20.0  # Período de 20ms para 50Hz
+    
     while servo_running:
         try:
             # Convertir ángulo a ancho de pulso en milisegundos
-            # Servo SG90: 0° = 1ms, 90° = 1.5ms, 180° = 2.5ms
+            # Servo SG90 típicamente:
+            # 0° = 1.0ms, 90° = 1..5ms, 180° = 2.5ms
+            # Algunos servos pueden necesitar ajustes: 0.5ms - 2.5ms
             pulse_width_ms = 1.0 + (servo_angle / 180.0) * 1.5
+            
+            # Asegurar que el pulso esté en el rango válido
+            pulse_width_ms = max(0.5, min(2.5, pulse_width_ms))
+            
+            # Calcular tiempo LOW para completar el período
+            low_time_ms = period_ms - pulse_width_ms
             
             # Generar pulso HIGH
             GPIO.output(servo_pin, GPIO.HIGH)
-            time.sleep(pulse_width_ms / 1000.0)  # Convertir ms a segundos
+            time.sleep(pulse_width_ms / 1000.0)
             
             # Generar pulso LOW (completar el período de 20ms)
             GPIO.output(servo_pin, GPIO.LOW)
-            time.sleep((20.0 - pulse_width_ms) / 1000.0)
+            if low_time_ms > 0:
+                time.sleep(low_time_ms / 1000.0)
             
         except Exception as e:
             print(f"[SERVO] Error en hilo PWM: {e}")
+            import traceback
+            traceback.print_exc()
             break
 
 def start_pwm():
@@ -71,7 +84,10 @@ def start_pwm():
         servo_running = True
         servo_thread = threading.Thread(target=pwm_servo_thread, daemon=True)
         servo_thread.start()
-        print("[SERVO] Hilo PWM iniciado")
+        # Pequeña pausa para asegurar que el hilo se inicie
+        time.sleep(0.1)
+        print(f"[SERVO] Hilo PWM iniciado en GPIO {servo_pin}")
+        print(f"[SERVO] Generando señal PWM de 50Hz (20ms período)")
 
 def stop_pwm():
     """
