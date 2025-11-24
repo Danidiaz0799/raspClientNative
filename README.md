@@ -6,7 +6,7 @@ Cliente IoT para Raspberry Pi, especializado en monitoreo y control ambiental en
 
 ---
 
-## Características principales
+## Características principalestest
 
 - Control remoto de actuadores: ventilador, luz, humidificador y motor (GPIO).
 - Lectura periódica de sensores I2C (ejemplo: SHT3x).
