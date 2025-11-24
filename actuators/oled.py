@@ -9,7 +9,7 @@ try:
     i2c = busio.I2C(board.SCL, board.SDA)
     oled = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c, addr=0x3c)
     print("OLED inicializada correctamente")
-except Exception as e:
+except (ValueError, OSError, RuntimeError, Exception) as e:
     print(f"OLED no disponible: {e}")
     oled = None
 
