@@ -2,7 +2,7 @@
 SSID = 'Stev7'
 PASSWORD = 'hola12345'
 
-CLIENT_ID = 'mushroom1'  # Identificador �nico del cliente
+CLIENT_ID = 'mushroom2'  # Identificador �nico del cliente
 
 SERVER = '172.22.116.214'  # IP del servidor MQTT (Raspberry Pi)
 
