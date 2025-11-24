@@ -15,14 +15,11 @@ except Exception as e:
     sensor = None
 
 def read_sht3x():
-    if sensor is None:
-        return None
     try:
         temperature = sensor.temperature
         humidity = sensor.relative_humidity
         return {'temperature': temperature, 'humidity': humidity}
-    except Exception as e:
-        print(f"Error al leer sensor SHT3x: {e}")
+    except:
         return None
 
 def publish_sht3x_data(client, topic):
@@ -36,7 +33,7 @@ def publish_sht3x_data(client, topic):
         humidity = round(sensor_data['humidity'], 4)
         message = '{0},{1}'.format(temperature, humidity).encode('utf-8')
         client.publish(topic, message)
-        print("SHT3x:", message, "Topico:", topic)
-        display_data(temperature, humidity)  # Mostrar datos en la pantalla OLED
+        print(f"SHT3x: T={temperature}°C H={humidity}%")
+        display_data(temperature, humidity)
     else:
-        print("Error al leer los datos del sensor SHT3x")
+        print("Error leyendo SHT3x")

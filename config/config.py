@@ -2,11 +2,11 @@
 SSID = 'Stev7'
 PASSWORD = 'hola12345'
 
-CLIENT_ID = 'mushroom1'  # Identificador único del cliente
+CLIENT_ID = 'mushroom2'  # Identificador ï¿½nico del cliente
 
-SERVER = '192.168.184.223'  # IP del servidor MQTT (Raspberry Pi)
+SERVER = '172.22.116.214'  # IP del servidor MQTT (Raspberry Pi)
 
-# Nuevos tópicos basados en el ID de cliente
+# Nuevos tï¿½picos basados en el ID de cliente
 TOPIC_PREFIX = f'clients/{CLIENT_ID}/'
 TOPIC_REGISTER = f'{TOPIC_PREFIX}register'
 TOPIC_FAN = f'{TOPIC_PREFIX}fan'

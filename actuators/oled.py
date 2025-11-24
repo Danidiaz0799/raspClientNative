@@ -8,8 +8,8 @@ oled = None
 try:
     i2c = busio.I2C(board.SCL, board.SDA)
     oled = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c, addr=0x3c)
-    print("OLED inicializado correctamente en dirección 0x3c")
-except Exception as e:
+    print("OLED inicializada correctamente")
+except (ValueError, OSError, RuntimeError, Exception) as e:
     print(f"OLED no disponible: {e}")
     oled = None
 
@@ -35,8 +35,7 @@ def display_data(temperature, humidity):
 # Funcion para mostrar mensajes en la pantalla OLED
 def display_message(message):
     if oled is None:
-        print(f"OLED: {message}")  # Mostrar en consola si OLED no está disponible
-        return
+        return  # OLED no disponible, salir silenciosamente
     try:
         oled.fill(0)
         oled.show()
